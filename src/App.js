@@ -16,31 +16,27 @@ function App() {
     JSON.parse(localStorage.getItem("tenziesScores")) || {}
   );
 
-  function countTimer() {
-    setSeconds(prevSec => prevSec + 1);
-    setMinutes(Math.floor((seconds - hours*3600)/60))
-    setHours(Math.floor(seconds /3600))
+
+  useEffect(()=>{
+    const myInterval = setInterval(() => {
+      
+      setSeconds(prevSec => prevSec + 1);
+      setMinutes(Math.floor((seconds - hours*3600)/60))
+      setHours(Math.floor(seconds /3600))
       if (showSeconds < 60) {
-      setShowSeconds(prevSec => prevSec + 1)
+        setShowSeconds(prevSec => prevSec + 1)
       } else {
-      setShowSeconds(0)
-      setShowSeconds(prevSec => prevSec + 1)
-      }  
-
+        setShowSeconds(0)
+        setShowSeconds(prevSec => prevSec + 1)
+      } 
+    }, 1000)
+    if (tenzies) {
+      clearInterval(myInterval);
     }
-
-
-useEffect(()=>{
-  const myInterval = setInterval(() => {
-    countTimer()
-  }, 1000)
-  if (tenzies) {
-    clearInterval(myInterval);
-  }
-      return ()=> {
-          clearInterval(myInterval);
-        };
-});
+        return ()=> {
+            clearInterval(myInterval);
+          };
+  },[tenzies, hours, seconds, showSeconds]);
 
 
   useEffect(() => {
@@ -50,12 +46,12 @@ useEffect(()=>{
     if (allHeld && allSameValue) {
         setTenzies(true)
         const store = {seconds, minutes, hours, rollCount}
-        if (seconds < bestScore.seconds) {
+        if (!bestScore.seconds || seconds < bestScore.seconds) {
           localStorage.setItem("tenziesScores", JSON.stringify(store))
           setBestScore(store)
         }
     }
-}, [dice])
+}, [dice, seconds, minutes, hours, rollCount, bestScore.seconds])
 
   function generateNewDie() {
     return {
@@ -129,7 +125,7 @@ useEffect(()=>{
         </button>
         <div>
           <div className='best-score'>Best Time: {bestScore.seconds ? (`${bestScore.minutes}m ${bestScore.seconds}s`) : 
-            "00s"
+            "--"
             }
           </div>
           <div className='time-box'>Time spent: {hours > 0 ? `${hours}h` : ''} {minutes}m {showSeconds}s</div>
